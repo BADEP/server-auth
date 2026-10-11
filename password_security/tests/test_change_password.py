@@ -12,18 +12,18 @@ from odoo.tests.common import HOST, HttpCase, Opener, get_db_name, tagged
 class TestPasswordSecurityChange(HttpCase):
     def login(self, username, password):
         """Log in with provided credentials."""
-        self.session = http.root.session_store.new()
+        self.session = http.session.session_store().new()
         self.opener = Opener(self)
         self.opener.cookies.set("session_id", self.session.sid, domain=HOST, path="/")
 
-        with mock.patch("odoo.http.db_filter") as db_filter:
+        with mock.patch("odoo.http.router.db_filter") as db_filter:
             db_filter.side_effect = lambda dbs, host=None: [get_db_name()]
             res_post = self.url_open(
                 "/web/login",
                 data={
                     "login": username,
                     "password": password,
-                    "csrf_token": http.Request.csrf_token(self),
+                    "csrf_token": http.requestlib.Request.csrf_token(self),
                 },
             )
         res_post.raise_for_status()
@@ -92,7 +92,7 @@ class TestPasswordSecurityChange(HttpCase):
         """It should fail when chosen password was previously used"""
 
         # Set password history limit
-        self.env["ir.config_parameter"].sudo().set_param("password_security.history", 3)
+        self.env["ir.config_parameter"].sudo().set_str("password_security.history", 3)
         user = self.env["res.users"].search([("login", "=", "admin")], limit=1)
         self.assertEqual(len(user.password_history_ids), 0)
 

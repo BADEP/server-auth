@@ -5,7 +5,7 @@
 {
     "name": "Password Security",
     "summary": "Allow admin to set password security requirements.",
-    "version": "19.0.1.0.2",
+    "version": "20.0.1.0.0",
     "author": "LasLabs, "
     "Onestein, "
     "Kaushal Prajapati, "
@@ -23,8 +23,7 @@
     "license": "LGPL-3",
     "data": [
         "views/res_config_settings_views.xml",
-        "security/ir.model.access.csv",
-        "security/res_users_pass_history.xml",
+        "security/ir.access.csv",
     ],
     "demo": [
         "demo/res_users.xml",

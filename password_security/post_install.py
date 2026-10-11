@@ -15,4 +15,4 @@ def init_config_parameters(env):
         "password_security.special": 1,
     }
     for key, value in defaultvalues.items():
-        env["ir.config_parameter"].set_param(key, value)
+        env["ir.config_parameter"].set_str(key, value)

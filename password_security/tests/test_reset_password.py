@@ -19,18 +19,18 @@ class TestPasswordSecurityReset(HttpCase):
 
     def reset_password(self, username):
         """Reset user password"""
-        self.session = http.root.session_store.new()
+        self.session = http.session.session_store().new()
         self.opener = Opener(self)
         self.opener.cookies.set("session_id", self.session.sid, domain=HOST, path="/")
 
-        with mock.patch("odoo.http.db_filter") as db_filter:
+        with mock.patch("odoo.http.router.db_filter") as db_filter:
             db_filter.side_effect = lambda dbs, host=None: [get_db_name()]
             res_post = self.url_open(
                 "/web/reset_password",
                 data={
                     "login": username,
                     "name": username,
-                    "csrf_token": http.Request.csrf_token(self),
+                    "csrf_token": http.requestlib.Request.csrf_token(self),
                 },
             )
         res_post.raise_for_status()
@@ -41,7 +41,7 @@ class TestPasswordSecurityReset(HttpCase):
         """It should fail when reset password below Minimum Hours"""
         # Enable check on Minimum Hours
         min_hours = 24
-        self.env["ir.config_parameter"].sudo().set_param(
+        self.env["ir.config_parameter"].sudo().set_str(
             "password_security.minimum_hours", min_hours
         )
 
@@ -61,7 +61,7 @@ class TestPasswordSecurityReset(HttpCase):
         """It should succeed when check on Minimum Hours is disabled"""
 
         # Disable check on Minimum Hours
-        self.env["ir.config_parameter"].sudo().set_param(
+        self.env["ir.config_parameter"].sudo().set_str(
             "password_security.minimum_hours", 0
         )
 
@@ -79,7 +79,7 @@ class TestPasswordSecurityReset(HttpCase):
     def test_03_reset_password_admin(self):
         """It should succeed when reset password is executed by Admin"""
         # Enable check on Minimum Hours
-        self.env["ir.config_parameter"].sudo().set_param(
+        self.env["ir.config_parameter"].sudo().set_str(
             "password_security.minimum_hours", 24
         )
 
@@ -107,7 +107,7 @@ class TestPasswordSecurityReset(HttpCase):
         reset and every signup that goes through a token.
         """
         # Disable check on Minimum Hours so the reset is not blocked by it
-        self.env["ir.config_parameter"].sudo().set_param(
+        self.env["ir.config_parameter"].sudo().set_str(
             "password_security.minimum_hours", 0
         )
 
@@ -117,11 +117,11 @@ class TestPasswordSecurityReset(HttpCase):
         self.assertTrue(token, "The signup token should have been generated")
 
         new_password = "!asdQWE12345_4"
-        self.session = http.root.session_store.new()
+        self.session = http.session.session_store().new()
         self.opener = Opener(self)
         self.opener.cookies.set("session_id", self.session.sid, domain=HOST, path="/")
 
-        with mock.patch("odoo.http.db_filter") as db_filter:
+        with mock.patch("odoo.http.router.db_filter") as db_filter:
             db_filter.side_effect = lambda dbs, host=None: [get_db_name()]
             response = self.url_open(
                 "/web/reset_password",
@@ -130,7 +130,7 @@ class TestPasswordSecurityReset(HttpCase):
                     "login": "jackoneill",
                     "password": new_password,
                     "confirm_password": new_password,
-                    "csrf_token": http.Request.csrf_token(self),
+                    "csrf_token": http.requestlib.Request.csrf_token(self),
                 },
             )
 

@@ -18,7 +18,7 @@ class PasswordSecurity2FAHome(Home):
             return result
         # My password is expired, kick me out
         request.env.user.action_expire_password()
-        request.session.logout(keep_db=True)
+        http.session.logout(request.session, keep_db=True)
         # res.users._login() loaded login_date into this env's cache before
         # _update_last_login() created the new res.users.log, so the cached
         # value is stale. _generate_signup_token() signs login_date into the

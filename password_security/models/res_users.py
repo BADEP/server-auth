@@ -4,7 +4,7 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html).
 
 import re
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from odoo import api, fields, models, modules
 from odoo.exceptions import UserError, ValidationError
@@ -12,7 +12,7 @@ from odoo.tools import config
 
 
 def delta_now(**kwargs):
-    return datetime.now() + timedelta(**kwargs)
+    return fields.Datetime.now() + timedelta(**kwargs)
 
 
 class ResUsers(models.Model):
@@ -36,20 +36,18 @@ class ResUsers(models.Model):
     def _get_all_password_params(self):
         params = self.env["ir.config_parameter"].sudo()
         res = {
-            "minlength": int(
-                params.get_param("auth_password_policy.minlength", default=0)
+            "minlength": params.get_int("auth_password_policy.minlength", default=0),
+            "expiration_days": params.get_int(
+                "password_security.expiration_days", default=60
             ),
-            "expiration_days": int(
-                params.get_param("password_security.expiration_days", default=60)
+            "minimum_hours": params.get_int(
+                "password_security.minimum_hours", default=60
             ),
-            "minimum_hours": int(
-                params.get_param("password_security.minimum_hours", default=60)
-            ),
-            "history": int(params.get_param("password_security.history", default=30)),
-            "lower": int(params.get_param("password_security.lower", default=1)),
-            "upper": int(params.get_param("password_security.upper", default=1)),
-            "numeric": int(params.get_param("password_security.numeric", default=1)),
-            "special": int(params.get_param("password_security.special", default=1)),
+            "history": params.get_int("password_security.history", default=30),
+            "lower": params.get_int("password_security.lower", default=1),
+            "upper": params.get_int("password_security.upper", default=1),
+            "numeric": params.get_int("password_security.numeric", default=1),
+            "special": params.get_int("password_security.special", default=1),
         }
         return res
 
@@ -71,7 +69,7 @@ class ResUsers(models.Model):
         if (
             (
                 config["test_enable"]
-                and not modules.module.current_test.test_module == "password_security"
+                and modules.module.current_test.test_module != "password_security"
             )
             # Skip the check while loading data files, to avoid blocking installations
             or self.env.context.get("install_mode")
@@ -139,7 +137,7 @@ class ResUsers(models.Model):
         self.ensure_one()
         if not password or (
             config["test_enable"]
-            and not modules.module.current_test.test_module == "password_security"
+            and modules.module.current_test.test_module != "password_security"
         ):
             return True
         pwd_params = self._get_all_password_params()
@@ -183,7 +181,7 @@ class ResUsers(models.Model):
                 continue
             write_date = user.password_write_date
             delta = timedelta(hours=pwd_params["minimum_hours"])
-            if write_date + delta > datetime.now():
+            if write_date + delta > fields.Datetime.now():
                 raise UserError(
                     self.env._(
                         "Passwords can only be reset every %d hour(s). "
@@ -232,10 +230,11 @@ class ResUsers(models.Model):
 
     def action_reset_password(self):
         """Disallow password resets inside of Minimum Hours"""
-        if not self.env.context.get("install_mode") and not self.env.context.get(
-            "create_user"
+        if (
+            not self.env.context.get("install_mode")
+            and not self.env.context.get("create_user")
+            and not self.env.user._is_admin()
         ):
-            if not self.env.user._is_admin():
-                users = self.filtered(lambda user: user.active)
-                users._validate_pass_reset()
+            users = self.filtered(lambda user: user.active)
+            users._validate_pass_reset()
         return super().action_reset_password()

@@ -32,7 +32,7 @@ class PasswordSecurityHome(AuthSignupHome):
             return response
         # My password is expired, kick me out
         request.env.user.action_expire_password()
-        request.session.logout(keep_db=True)
+        http.session.logout(request.session, keep_db=True)
         # I was kicked out, so set login_success in request params to False
         request.params["login_success"] = False
         # res.users._login() loaded login_date into this env's cache before
@@ -50,12 +50,12 @@ class PasswordSecurityHome(AuthSignupHome):
 
         try:
             qcontext = self.get_auth_signup_qcontext()
-        except Exception:
+        except Exception:  # noqa: BLE001 - any failure is a bad request, re-raised
             raise BadRequest from None  # HTTPError: 400 Client Error: BAD REQUEST
 
         try:
             return super().web_auth_signup(*args, **kw)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - intended: show any error on the form
             # Here we catch any generic exception since UserError is already
             # handled in parent method web_auth_signup()
             qcontext["error"] = str(e)

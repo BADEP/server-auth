@@ -21,11 +21,11 @@ class EndTestException(Exception):
 class TestPasswordSecuritySignup(HttpCase):
     def signup(self, username, password):
         """Signup user"""
-        self.session = http.root.session_store.new()
+        self.session = http.session.session_store().new()
         self.opener = Opener(self)
         self.opener.cookies.set("session_id", self.session.sid, domain=HOST, path="/")
 
-        with mock.patch("odoo.http.db_filter") as db_filter:
+        with mock.patch("odoo.http.router.db_filter") as db_filter:
             db_filter.side_effect = lambda dbs, host=None: [get_db_name()]
             res_post = self.url_open(
                 "/web/signup",
@@ -34,7 +34,7 @@ class TestPasswordSecuritySignup(HttpCase):
                     "name": username,
                     "password": password,
                     "confirm_password": password,
-                    "csrf_token": http.Request.csrf_token(self),
+                    "csrf_token": http.requestlib.Request.csrf_token(self),
                 },
             )
         res_post.raise_for_status()
@@ -57,11 +57,15 @@ class TestPasswordSecuritySignup(HttpCase):
     def test_02_signup_user_success(self):
         """It should succeed when signup user with strong password"""
         # Weak password: signup failed
-        user = self.env["res.users"].search([("login", "=", "jackoneill")])
+        # Odoo 20: the signup login must be a valid email address
+        login = "jackoneill@example.com"
+        user = self.env["res.users"].search([("login", "=", login)])
         self.assertFalse(user)
-        response = self.signup("jackoneill", "!asdQWE12345_3")
-        user = self.env["res.users"].search([("login", "=", "jackoneill")])
-        session = http.root.session_store.get(response.request._cookies["session_id"])
+        response = self.signup(login, "!asdQWE12345_3")
+        user = self.env["res.users"].search([("login", "=", login)])
+        session = http.session.session_store().get(
+            response.request._cookies["session_id"]
+        )
         # Ensure we were logged in
         self.assertEqual(user.id, session.uid)
         self.assertEqual(response.status_code, 200)
@@ -103,20 +107,20 @@ class TestPasswordSecuritySignup(HttpCase):
     def test_04_web_auth_signup_invalid_qcontext(self):
         """It should catch AttributeError"""
 
-        with mock.patch("odoo.http.db_filter") as db_filter:
+        with mock.patch("odoo.http.router.db_filter") as db_filter:
             db_filter.side_effect = lambda dbs, host=None: [get_db_name()]
             with self.assertRaises(AttributeError):
                 # 'TestPasswordSecuritySignup' object has no attribute 'session'
                 self.url_open(
                     "/web/signup",
                     data={
-                        "csrf_token": http.Request.csrf_token(self),
+                        "csrf_token": http.requestlib.Request.csrf_token(self),
                     },
                 )
 
     def test_05_web_auth_signup_invalid_qcontext(self):
         """It should catch EndTestException on signup qcontext"""
-        self.session = http.root.session_store.new()
+        self.session = http.session.session_store().new()
         self.opener = Opener(self)
         self.opener.cookies.set("session_id", self.session.sid, domain=HOST, path="/")
 
@@ -136,11 +140,11 @@ class TestPasswordSecuritySignup(HttpCase):
 
     def test_06_web_auth_signup_invalid_render(self):
         """It should render & return signup form on invalid"""
-        self.session = http.root.session_store.new()
+        self.session = http.session.session_store().new()
         self.opener = Opener(self)
         self.opener.cookies.set("session_id", self.session.sid, domain=HOST, path="/")
 
-        with mock.patch("odoo.http.db_filter") as db_filter:
+        with mock.patch("odoo.http.router.db_filter") as db_filter:
             db_filter.side_effect = lambda dbs, host=None: [get_db_name()]
             # Signup: no name or partner given for new user
             response = self.url_open(
@@ -149,7 +153,7 @@ class TestPasswordSecuritySignup(HttpCase):
                     "login": "test@test.com",
                     "password": "!asdQWE12345_7",
                     "confirm_password": "!asdQWE12345_7",
-                    "csrf_token": http.Request.csrf_token(self),
+                    "csrf_token": http.requestlib.Request.csrf_token(self),
                 },
             )
 

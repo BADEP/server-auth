@@ -131,7 +131,7 @@ class TestResUsers(TransactionCase):
     def test_validate_pass_reset_zero(self):
         """It should allow reset pass when <= 0"""
         rec_id = self._new_record()
-        self.env["ir.config_parameter"].sudo().set_param(
+        self.env["ir.config_parameter"].sudo().set_str(
             "password_security.minimum_hours", 0
         )
         self.assertEqual(
@@ -140,10 +140,10 @@ class TestResUsers(TransactionCase):
         )
 
     def test_underscore_is_special_character(self):
-        password_special = int(
+        password_special = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("password_security.special", default=1)
+            .get_int("password_security.special", default=1)
         )
         self.assertTrue(password_special)
         rec_id = self._new_record()

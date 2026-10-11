@@ -2,12 +2,12 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl.html).
 
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from unittest import mock
 
 from passlib.totp import TOTP
 
-from odoo import http
+from odoo import fields, http
 from odoo.tests import HOST, HttpCase, Opener, get_db_name, new_test_user, tagged
 
 
@@ -57,16 +57,16 @@ class TestTOTP(HttpCase):
 
         # Expire the password so that web_totp() kicks the user out once the
         # second factor succeeds.
-        user.password_write_date = datetime.now() - timedelta(days=3)
-        self.env["ir.config_parameter"].sudo().set_param(
+        user.password_write_date = fields.Datetime.now() - timedelta(days=3)
+        self.env["ir.config_parameter"].sudo().set_str(
             "password_security.expiration_days", 1
         )
 
-        self.session = http.root.session_store.new()
+        self.session = http.session.session_store().new()
         self.opener = Opener(self)
         self.opener.cookies.set("session_id", self.session.sid, domain=HOST, path="/")
 
-        with mock.patch("odoo.http.db_filter") as db_filter:
+        with mock.patch("odoo.http.router.db_filter") as db_filter:
             db_filter.side_effect = lambda dbs, host=None: [get_db_name()]
             # First factor: the session is left on pre_uid, not logged in yet
             first = self.url_open(
@@ -74,7 +74,7 @@ class TestTOTP(HttpCase):
                 data={
                     "login": "tealc",
                     "password": password,
-                    "csrf_token": http.Request.csrf_token(self),
+                    "csrf_token": http.requestlib.Request.csrf_token(self),
                 },
             )
             first.raise_for_status()
@@ -84,7 +84,7 @@ class TestTOTP(HttpCase):
                 "/web/login/totp",
                 data={
                     "totp_token": TOTP(key=secret, format="base32").generate().token,
-                    "csrf_token": http.Request.csrf_token(self),
+                    "csrf_token": http.requestlib.Request.csrf_token(self),
                 },
             )
         response.raise_for_status()
