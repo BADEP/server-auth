@@ -91,14 +91,13 @@ class AuthOauthProvider(models.Model):
         # we accept multiple keys with the same kid in case a key gets rotated.
         for key in keys:
             try:
-                values = jwt.decode(
+                return jwt.decode(
                     id_token,
                     key,
                     algorithms=["RS256"],
                     audience=self.client_id,
                     access_token=access_token,
                 )
-                return values
             except (JWTError, JWSError) as e:
                 error = e
         if error:
