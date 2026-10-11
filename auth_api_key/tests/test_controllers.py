@@ -47,7 +47,7 @@ class TestControllers(HttpCase):
 
     @mute_logger("odoo.addons.base.models.ir_http")
     def test_auth_api_key_wrong(self):
-        with self.assertLogs("odoo.http") as cm:
+        with self.assertLogs("odoo.http", level="WARNING") as cm:
             res = self.url_open("/web/auth-api-key", headers={"API-KEY": "wrong"})
         self.assertEqual(res.status_code, 403)
         self.assertIn("Access Denied", cm.output[0])
