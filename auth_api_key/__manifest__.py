@@ -3,9 +3,8 @@
 
 {
     "name": "Auth Api Key",
-    "summary": """
-        Authenticate http requests from an API key""",
-    "version": "19.0.1.1.0",
+    "summary": "Authenticate http requests from an API key",
+    "version": "20.0.1.0.0",
     "license": "LGPL-3",
     "author": "ACSONE SA/NV,Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/server-auth",
@@ -13,8 +12,8 @@
     "depends": ["base_setup"],
     "post_load": "post_load_hook",
     "data": [
-        "security/ir.model.access.csv",
         "views/auth_api_key.xml",
         "views/res_config_settings.xml",
+        "security/ir.access.csv",
     ],
 }

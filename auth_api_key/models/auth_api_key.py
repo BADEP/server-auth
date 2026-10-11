@@ -20,7 +20,6 @@ class AuthApiKey(models.Model):
     )
     user_id = fields.Many2one(
         comodel_name="res.users",
-        string="User",
         required=True,
         help="""The user used to process the requests authenticated by
         the api key""",
@@ -81,7 +80,7 @@ class AuthApiKey(models.Model):
         return self._retrieve_api_key(key).user_id.id
 
     def _clear_key_cache(self):
-        self.env.registry.clear_cache()
+        self.env.transaction.invalidate_ormcache()
 
     @api.depends(
         "user_id.active", "user_id.company_id.archived_user_disable_auth_api_key"
@@ -97,7 +96,7 @@ class AuthApiKey(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
-        if any(["key" in vals or "user_id" in vals for vals in vals_list]):
+        if any("key" in vals or "user_id" in vals for vals in vals_list):
             self._clear_key_cache()
         return records
 
