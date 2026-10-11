@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <record model="ir.ui.view" id="auth_api_key_form_view">
+    <record id="auth_api_key_form_view" model="ir.ui.view">
         <field name="model">auth.api.key</field>
         <field name="inherit_id" ref="auth_api_key.auth_api_key_form_view" />
         <field name="arch" type="xml">
