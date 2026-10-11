@@ -40,7 +40,7 @@ class TestResUsers(TransactionCase):
         self.uid = mock.MagicMock()
         self.passwd = mock.MagicMock()
         self.path = "/this/is/a/test/path"
-        get_filename = http_mock.root.session_store.get_session_filename
+        get_filename = http_mock.session.session_store.return_value.get_session_path
         get_filename.return_value = self.path
         return self.ResUsers._auth_timeout_check()
 
@@ -56,11 +56,11 @@ class TestResUsers(TransactionCase):
         with self._mock_assets() as assets:
             get_params = assets["http"].request.env[""].get_session_parameters
             get_params.return_value = 0, []
-            store = assets["http"].root.session_store
-            store.get_session_filename.side_effect = EndTestException
+            store = assets["http"].session.session_store.return_value
+            store.get_session_path.side_effect = EndTestException
             with self.assertRaises(EndTestException):
                 self._auth_timeout_check(assets["http"])
-            store.get_session_filename.assert_called_once_with(
+            store.get_session_path.assert_called_once_with(
                 assets["http"].request.session.sid,
             )
 
@@ -71,7 +71,8 @@ class TestResUsers(TransactionCase):
             get_params.return_value = -9999, []
             assets["getmtime"].return_value = 0
             self._auth_timeout_check(assets["http"])
-            assets["http"].request.session.logout.assert_called_once_with(
+            assets["http"].session.logout.assert_called_once_with(
+                assets["http"].request.session,
                 keep_db=True,
             )
 
@@ -83,7 +84,7 @@ class TestResUsers(TransactionCase):
             assets["getmtime"].return_value = time.time()
             self._auth_timeout_check(assets["http"])
             assets["utime"].assert_called_once_with(
-                assets["http"].root.session_store.get_session_filename(),
+                assets["http"].session.session_store().get_session_path(),
                 None,
             )
 
@@ -102,6 +103,5 @@ class TestResUsers(TransactionCase):
             assets["http"].request.session.uid = self.env.uid
             assets["http"].request.session.dbname = self.env.cr.dbname
             assets["http"].request.session.sid = 123
-            assets["http"].request.session.logout = mock.Mock()
             self.ResUsers._auth_timeout_check()
-            self.assertTrue(assets["http"].request.session.logout.called)
+            self.assertTrue(assets["http"].session.logout.called)
