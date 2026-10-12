@@ -181,7 +181,7 @@ class AuthSamlProvider(models.Model):
     @api.depends("sp_baseurl")
     def _compute_sp_metadata_url(self):
         icp_base_url = (
-            self.env["ir.config_parameter"].sudo().get_param("web.base.url", "")
+            self.env["ir.config_parameter"].sudo().get_str("web.base.url", "")
         )
 
         for record in self:
@@ -234,7 +234,7 @@ class AuthSamlProvider(models.Model):
 
         if not base_url:
             base_url = (
-                self.env["ir.config_parameter"].sudo().get_param("web.base.url", "")
+                self.env["ir.config_parameter"].sudo().get_str("web.base.url", "")
             )
 
         acs_url = urllib.parse.urljoin(base_url, "/auth_saml/signin")

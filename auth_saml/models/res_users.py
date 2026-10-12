@@ -176,7 +176,7 @@ class ResUser(models.Model):
         return tools.str2bool(
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param(ALLOW_SAML_UID_AND_PASSWORD)
+            .get_str(ALLOW_SAML_UID_AND_PASSWORD)
         )
 
     def _set_password(self):

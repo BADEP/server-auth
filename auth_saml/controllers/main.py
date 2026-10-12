@@ -18,7 +18,8 @@ from odoo import (
     models,
     modules,
 )
-from odoo.http import fragment_to_query_string, request
+from odoo.http import request
+from odoo.http.requestlib import fragment_to_query_string
 from odoo.tools.misc import clean_context
 
 from odoo.addons.web.controllers.home import Home

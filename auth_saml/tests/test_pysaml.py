@@ -400,7 +400,7 @@ class TestPySaml(HttpCase):
         disallow option is set."""
         # change the option
         self.browse_ref("auth_saml.allow_saml_uid_and_internal_password").unlink()
-        self.env["ir.config_parameter"].set_param(
+        self.env["ir.config_parameter"].set_str(
             "auth_saml.allow_saml_uid_and_internal_password", "False"
         )
         # Create a new user with only SAML ids
@@ -474,7 +474,7 @@ class TestPySaml(HttpCase):
             [{"key": "test", "value": "unrelated"}]
         )
         self.authenticate(user="test@example.com", password="Lu,ums-7vRU>0i]=YDLa")
-        self.env["ir.config_parameter"].set_param("test", "False")
+        self.env["ir.config_parameter"].set_str("test", "False")
         self.authenticate(user="test@example.com", password="Lu,ums-7vRU>0i]=YDLa")
         param.unlink()
         self.authenticate(user="test@example.com", password="Lu,ums-7vRU>0i]=YDLa")
@@ -669,7 +669,7 @@ class TestPySaml(HttpCase):
                 "password": "securepassword",
             }
         )
-        self.env["ir.config_parameter"].set_param(
+        self.env["ir.config_parameter"].set_str(
             "auth_saml.allow_saml_uid_and_internal_password", "False"
         )
         self.env["res.users.saml"].create(

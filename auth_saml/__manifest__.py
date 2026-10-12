@@ -4,7 +4,7 @@
 
 {
     "name": "SAML2 Authentication",
-    "version": "19.0.1.0.0",
+    "version": "20.0.1.0.0",
     "category": "Tools",
     "author": "XCG Consulting, Odoo Community Association (OCA)",
     "maintainers": ["vincent-hatakeyama"],
@@ -20,10 +20,10 @@
     "demo": [],
     "data": [
         "data/ir_config_parameter.xml",
-        "security/ir.model.access.csv",
         "views/auth_saml.xml",
         "views/res_config_settings.xml",
         "views/res_users.xml",
+        'security/ir.access.csv',
     ],
     "installable": True,
     "auto_install": False,
