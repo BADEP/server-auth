@@ -1,0 +1,2 @@
+id,name,model_id,group_id/id,operation,domain
+access_auth_api_key_group,access_auth_api_key_group,auth.api.key.group,base.group_system,crud,
